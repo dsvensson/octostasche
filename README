@@ -1,0 +1,9 @@
+This is currently a crude little hack that may have potential...
+
+In one terminal:
+python -m SimpleHTTPServer 8080
+
+In another terminal:
+python test.py
+
+Then go to http://localhost:8080

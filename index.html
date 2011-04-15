@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title>Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css"/>
+	<style type="text/css">
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/Grid.css";
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/claroGrid.css";
+	  html, body { width: 100%; height: 100%; margin: 0; }
+      .dojoxGrid table { margin: 0; }
+    </style>
+	<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" type="text/javascript" djConfig="parseOnLoad: true">
+	</script>
+	<script type="text/javascript">
+      dojo.require("dijit.layout.ContentPane");
+      dojo.require("dojox.grid.DataGrid");
+      dojo.require("dojox.string.Builder");
+      dojo.require("dojox.string.sprintf");
+	  dojo.require("dojo.data.ItemFileWriteStore");
+	</script>
+    <script src="test.js" type="text/javascript"></script>
+  </head>
+  <body class="claro">
+    <div dojoType="dijit.layout.ContentPane" layoutAlign="client" style="margin: 0; padding: 0">
+	  <span id="current-metadata">&nbsp;</span> - <span id="playtime">&nbsp;</span> - <span id="status">&nbsp;</span>
+	</div>
+    <div dojoType="dijit.layout.ContentPane" layoutAlign="client" style="margin: 0; padding: 0; height: 100%">
+      <table jsId="playlistView" dojoType="dojox.grid.DataGrid" style="width: 100%; height: 100px">
+        <thead>
+          <tr>
+            <th field="artist" width="auto">Artist</th>
+            <th field="album" width="auto">Album</th>
+            <th field="title" width="auto">Title</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </body>
+</html>
