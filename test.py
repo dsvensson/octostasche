@@ -8,7 +8,7 @@ import logging
 import re
 import struct
 import json
-import urllib
+import cgi
 
 def string_to_header(data):
     data = data.split('\r\n\r\n', 1)
@@ -125,7 +125,7 @@ class WebSocketServer(object):
                 n = {}
                 for x in d:
                     if isinstance(p[x], basestring):
-                        n[x] = urllib.quote(p[x])
+                        n[x] = cgi.escape(p[x])
                     else:
                         n[x] = p[x]
                 return self.send_result(idx, n);
