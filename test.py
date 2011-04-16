@@ -99,8 +99,14 @@ class WebSocketServer(object):
     def send(self, data):
         self.socket.send(data)
 
-    def send_as_json(self, id_, data):
-        self.socket.send("\x00" + json.dumps({"id": id_, "result": data}) + "\xff")
+    def send_message(self, message):
+        self.socket.send("\x00" + json.dumps(message) + "\xff")
+
+    def send_result(self, id_, data):
+        self.send_message({"id": id_, "result": data})
+
+    def send_error(self, id_, error):
+        self.send_message({"id": id_, "error": error})
 
     def handshake(self):
         response = handshake(self.host, self.port, self.buffer)
@@ -112,6 +118,8 @@ class WebSocketServer(object):
     def build_handler(self, method, idx):
         if method == "medialib_get_info":
             def handle(v):
+                if v.is_error():
+                    return self.send_error(idx, v.get_error())
                 d = v.get_dict()
                 p = v.value()
                 n = {}
@@ -120,11 +128,13 @@ class WebSocketServer(object):
                         n[x] = urllib.quote(p[x])
                     else:
                         n[x] = p[x]
-                self.send_as_json(idx, n);
+                return self.send_result(idx, n);
             return handle
         else:
             def handle(v):
-                return self.send_as_json(idx, v.value())
+                if v.is_error():
+                    return self.send_error(idx, v.get_error())
+                return self.send_result(idx, v.value())
             return handle
 
     def commands(self):
