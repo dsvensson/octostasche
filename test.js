@@ -41,7 +41,7 @@ Ext.onReady(function() {
 			{ text: '#',      width: 50, sortable: false, dataIndex: 'tracknr' }
 		],
 		title: 'Playlist',
-		renderTo: 'grid-example',
+		renderTo: 'playlist',
 		viewConfig: {
 			stripeRows: true,
 			enableTextSelection: true,
