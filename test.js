@@ -10,11 +10,12 @@ Ext.define('Playlist', {
 	requires: ['Ext.data.SequentialIdGenerator'],
 	idgen: 'sequential',
 	fields: [
-		{name: 'mid', type: 'int'},
-		{name: 'artist', type: 'string' },
-		{name: 'album', type: 'string'	},
-		{name: 'title', type: 'string'	},
-		{name: 'tracknr', type: 'int'  },
+		{name: 'mid',     type: 'int'    },
+		{name: 'playing', type: 'string' },
+		{name: 'artist',  type: 'string' },
+		{name: 'album',   type: 'string' },
+		{name: 'title',   type: 'string' },
+		{name: 'tracknr', type: 'int'    }
 	],
 });
 
@@ -33,10 +34,11 @@ Ext.onReady(function() {
 		stateId: 'stateGrid',
 		columns: [
 			new Ext.grid.RowNumberer(),
-			{ text: 'Artist',  flex: 1,	 sortable: false, dataIndex: 'artist'  },
-			{ text: 'Album',   flex: 1,	 sortable: false, dataIndex: 'album'   },
-			{ text: 'Title',   flex: 1,	 sortable: false, dataIndex: 'title'   },
-			{ text: '#',	  width: 50, sortable: false, dataIndex: 'tracknr' }
+			{ text: '',       width: 25, sortable: false, dataIndex: 'playing' },
+			{ text: 'Artist',  flex: 1,  sortable: false, dataIndex: 'artist'  },
+			{ text: 'Album',   flex: 1,  sortable: false, dataIndex: 'album'   },
+			{ text: 'Title',   flex: 1,  sortable: false, dataIndex: 'title'   },
+			{ text: '#',      width: 50, sortable: false, dataIndex: 'tracknr' }
 		],
 		title: 'Playlist',
 		renderTo: 'grid-example',
@@ -55,7 +57,7 @@ Ext.onReady(function() {
 	ws.onopen = function() {
 		var xc = new XmmsClient(ws);
 
-		grid.view.on("beforedrop", function(node, data, overModel, dropPosition, dropFunction, eOpts) {
+		grid.getView().on("beforedrop", function(node, data, overModel, dropPosition, dropFunction, eOpts) {
 			dropFunction.cancelDrop();
 
 			var downward = 0;
@@ -79,14 +81,14 @@ Ext.onReady(function() {
 			return 0;
 		});
 
-		grid.view.on("itemdblclick", function(view, record, item, index, event, opts) {
+		grid.getView().on("itemdblclick", function(view, record, item, index, event, opts) {
 			xc.playlist.setNext(store.indexOf(record));
 			xc.playback.tickle();
 			xc.playback.start();
 		});
 
 		store.on("add", function(store, objs, idx, opts) {
-			var handle_metadata = function(obj) {
+			var gen_metadata_func = function(obj) {
 				return function(data) {
 					obj.set("artist", data.artist);
 					obj.set("album", data.album);
@@ -97,9 +99,7 @@ Ext.onReady(function() {
 			}
 
 			for (i = 0; i < objs.length; i++) {
-				var pos = idx + i;
-				//console.log("resolving", idx, i, pos, objs[pos], objs, opts, idx);
-				xc.medialib.getInfo(objs[i].data.mid).complete = handle_metadata(objs[i]);
+				xc.medialib.getInfo(objs[i].get("mid")).complete = gen_metadata_func(objs[i]);
 			}
 		});
 
@@ -120,7 +120,7 @@ Ext.onReady(function() {
 				var row = store.getAt(change.position);
 				store.remove(row);
 				store.insert(change.newposition, row);
-				grid.view.refresh();
+				grid.getView().refresh();
 			} else if (change.type == xc.PlaylistChange.CLEAR) {
 				store.removeAll();
 			} else if (change.type == xc.PlaylistChange.SORT) {
@@ -132,6 +132,19 @@ Ext.onReady(function() {
 					store.add(rows);
 				};
 			}
+		};
+
+		var lastPosition = -1;
+		xc.playlist.current_position(true).complete = function(args) {
+			if (lastPosition != -1) {
+				var record = store.getAt(lastPosition);
+				record.set("playing", "");
+				record.commit();
+			}
+			var record = store.getAt(args.position);
+			record.set("playing", "<p style='color: #55bb88; font-size: 14px'>♬</p>");
+			record.commit();
+			lastPosition = args.position;
 		};
 	};
 });

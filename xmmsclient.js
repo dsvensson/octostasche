@@ -50,6 +50,12 @@ var XmmsClient = function(ws) {
 		},
 		changed: function() {
 			return dispatch("broadcast_playlist_changed", []);
+		},
+		current_position: function(broadcast) {
+			var result = dispatch("playlist_current_pos", []);
+			if (broadcast)
+				return dispatch("broadcast_playlist_current_pos", [], result);
+			return result;
 		}
 	};
 	this.medialib = {
