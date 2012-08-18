@@ -1,153 +1,137 @@
-var xmmsclient = function(ws) {
-    this.PlaylistChange = {
-        ADD: 0,
-        INSERT: 1,
-        SHUFFLE: 2,
-        REMOVE: 3,
-        CLEAR: 4,
-        MOVE: 5,
-        SORT: 6,
-        UPDATE: 7
-    };
-    var idx = 0;
-    var outstanding = {};
+Ext.require([
+	'Ext.grid.*',
+	'Ext.data.*',
+	'Ext.util.*',
+	'Ext.state.*'
+]);
 
-    ws.onmessage = function(e) {
-        var msg = JSON.parse(e.data);
-        var idx = msg["id"];
-        if (outstanding[idx] && outstanding[idx].complete) {
-            outstanding[idx].complete(msg["result"]);
-        }
-        if (!outstanding[idx].broadcast) {
-            delete outstanding[idx];
-        }
-    };
+Ext.define('Playlist', {
+	extend: 'Ext.data.Model',
+	requires: ['Ext.data.SequentialIdGenerator'],
+	idgen: 'sequential',
+	fields: [
+		{name: 'mid', type: 'int'},
+		{name: 'artist', type: 'string' },
+		{name: 'album', type: 'string'	},
+		{name: 'title', type: 'string'	},
+		{name: 'tracknr', type: 'int'  },
+	],
+});
 
-    var dispatch = function(cmd, params, result) {
-        if (!result) {
-            result = { id: idx };
-            idx++;
-        }
-        var msg = JSON.stringify({ "id": result["id"], "method": cmd, "params": params || []});
-        if (cmd.search("broadcast")) {
-            result.broadcast = true;
-        }
-        outstanding[result["id"]] = result;
-        ws.send(msg);
-        return result;
-    };
+Ext.onReady(function() {
+	Ext.QuickTips.init();
 
-    this.playlist = {
-        listEntries: function(name) {
-            return dispatch("playlist_list_entries", [name]);
-        },
-        setNext: function(position) {
-            return dispatch("playlist_set_next", [position]);
-        },
-        changed: function() {
-            return dispatch("broadcast_playlist_changed", []);
-        }
-    };
-    this.medialib = {
-        getInfo: function(mid) {
-            return dispatch("medialib_get_info", [mid]);
-        }
-    };
-    this.playback = {
-        start: function() {
-            return dispatch("playback_start", []);
-        },
-        currentId: function(broadcast) {
-            var result = dispatch("playback_current_id", []);
-            if (broadcast)
-                return dispatch("broadcast_playback_current_id", [], result);
-            return result;
-        },
-        playTime: function(signal) {
-            var result = dispatch("playback_playtime", []);
-            if (signal)
-                return dispatch("signal_playback_playtime", [], result);
-            return result;
-        },
-        status: function(broadcast) {
-            var result = dispatch("playback_status", []);
-            if (broadcast)
-                return dispatch("broadcast_playback_status", [], result);
-            return result;
-        },
-        tickle: function() {
-            return dispatch("playback_tickle", []);
-        }
-    };
-};
+	var store = Ext.create('Ext.data.ArrayStore', {
+		model: 'Playlist', data: []
+	});
 
-dojo.addOnLoad(function() {
+	var grid = Ext.create('Ext.grid.Panel', {
+		store: store,
+		stateful: true,
+		collapsible: true,
+		multiSelect: true,
+		stateId: 'stateGrid',
+		columns: [
+			new Ext.grid.RowNumberer(),
+			{ text: 'Artist',  flex: 1,	 sortable: false, dataIndex: 'artist'  },
+			{ text: 'Album',   flex: 1,	 sortable: false, dataIndex: 'album'   },
+			{ text: 'Title',   flex: 1,	 sortable: false, dataIndex: 'title'   },
+			{ text: '#',	  width: 50, sortable: false, dataIndex: 'tracknr' }
+		],
+		title: 'Playlist',
+		renderTo: 'grid-example',
+		viewConfig: {
+			stripeRows: true,
+			enableTextSelection: true,
+			plugins: {
+				ptype: 'gridviewdragdrop',
+				dragText: 'Drag and drop to reorganize'
+			}
+		}
+	});
 
-    var ws = new WebSocket("ws://127.0.0.1:9999/");
-    ws.onopen = function() {
-        var xc = new xmmsclient(ws);
 
-        var playlistModel = new dojo.data.ItemFileWriteStore({
-            data: { identifier: "mid", items: [] }
-        });
+	var ws = new WebSocket("ws://127.0.0.1:8080/socket");
+	ws.onopen = function() {
+		var xc = new XmmsClient(ws);
 
-        playlistView.setStore(playlistModel);
+		grid.view.on("beforedrop", function(node, data, overModel, dropPosition, dropFunction, eOpts) {
+			dropFunction.cancelDrop();
 
-        dojo.connect(playlistView, "onRowClick", function(event) {
-            xc.playlist.setNext(event.rowIndex);
-            xc.playback.tickle();
-            xc.playback.start();
-        });
+			var downward = 0;
+			var upward = 0;
 
-        xc.playlist.listEntries().complete = function(entries) {
-            for (var i=0; i < entries.length; i++) {
-                xc.medialib.getInfo(entries[i]).complete = function(data) {
-                    playlistModel.newItem({
-                        mid: data["id"], artist: data["artist"], album: data["album"], title: data["title"]
-                    });
-                };
-            }
-        };
+			var destination = store.indexOf(overModel);
+			if (dropPosition == "after")
+				destination++;
 
-        xc.playlist.changed().complete = function(change) {
-            if (change.type == xc.PlaylistChange.ADD) {
-                console.log(change.id);
-                xc.medialib.getInfo(change.id).complete = function(data) {
-                    console.log(data);
-                    playlistModel.newItem({
-                        mid: data["id"], artist: data["artist"], album: data["album"], title: data["title"]
-                    });
-                };
-            } else if (change.type == xc.PlaylistChange.CLEAR) {
-                playlistModel.fetch({onComplete: function(items) {
-                    dojo.map(items, function(item) {
-                        playlistModel.deleteItem(item);
-                    });
-                }});
-            }
-        };
+			for (i = 0; i < data.records.length; i++) {
+				var source = store.indexOf(data.records[i]);
+				if (source < destination) {
+					xc.playlist.move(source - downward, destination - 1);
+					downward++;
+				} else {
+					xc.playlist.move(source, destination + upward);
+					upward++;
+				}
+			}
 
-        xc.playback.currentId(true).complete = function(mid) {
-            xc.medialib.getInfo(mid).complete = function(data) {
-                var node = dojo.byId("current-metadata");
-                node.innerHTML = data["artist"] + " // " + data["album"] + " // " + data["title"];
-            };
-        };
+			return 0;
+		});
 
-        xc.playback.playTime(true).complete = function(time) {
-            var node = dojo.byId("playtime");
-            var seconds = time / 1000.0;
-            node.innerHTML = dojox.string.sprintf("%02d:%02d", seconds / 60, seconds % 60);
-        };
+		grid.view.on("itemdblclick", function(view, record, item, index, event, opts) {
+			xc.playlist.setNext(store.indexOf(record));
+			xc.playback.tickle();
+			xc.playback.start();
+		});
 
-        xc.playback.status(true).complete = function(status) {
-            var node = dojo.byId("status");
-            var mapper = {
-                0: "STOPPED",
-                1: "PLAYING",
-                2: "PAUSED"
-            };
-            node.innerHTML = mapper[status];
-        };
-    };
+		store.on("add", function(store, objs, idx, opts) {
+			var handle_metadata = function(obj) {
+				return function(data) {
+					obj.set("artist", data.artist);
+					obj.set("album", data.album);
+					obj.set("title", data.title);
+					obj.set("tracknr", data.tracknr);
+					obj.commit();
+				};
+			}
+
+			for (i = 0; i < objs.length; i++) {
+				var pos = idx + i;
+				//console.log("resolving", idx, i, pos, objs[pos], objs, opts, idx);
+				xc.medialib.getInfo(objs[i].data.mid).complete = handle_metadata(objs[i]);
+			}
+		});
+
+		xc.playlist.listEntries().complete = function(entries) {
+			var rows = []
+			for (i = 0; i < entries.length; i++)
+				rows.push({ mid: entries[i] });
+			store.add(rows);
+		};
+
+		xc.playlist.changed().complete = function(change) {
+			console.log("Playlist change:", change);
+			if (change.type == xc.PlaylistChange.ADD) {
+				store.add({ mid: change.id });
+			} else if (change.type == xc.PlaylistChange.INSERT) {
+				store.insert(change.position, { mid: change.id });
+			} else if (change.type == xc.PlaylistChange.MOVE) {
+				var row = store.getAt(change.position);
+				store.remove(row);
+				store.insert(change.newposition, row);
+				grid.view.refresh();
+			} else if (change.type == xc.PlaylistChange.CLEAR) {
+				store.removeAll();
+			} else if (change.type == xc.PlaylistChange.SORT) {
+				store.removeAll();
+				xc.playlist.listEntries().complete = function(entries) {
+					var rows = []
+					for (i = 0; i < entries.length; i++)
+						rows.push({ mid: entries[i] });
+					store.add(rows);
+				};
+			}
+		};
+	};
 });
