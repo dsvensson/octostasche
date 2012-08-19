@@ -50,7 +50,7 @@ class Handler(WebSocketHandler):
 			return handle
 
 	def dispatch(self, method, params, cb):
-		print method, params, cb
+		print "dispatching: %s(%s)" % (method, ', '.join(str(x) for x in params))
 		func = getattr(self.xc, method.replace(".", "_"))
 		func(*params, cb=cb)
 
