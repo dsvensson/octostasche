@@ -15,3 +15,11 @@ content and a websocket that kind of proxies the XMMS2 Python API.
 
 Right, and you have to have the Python project Tornado (tornadoweb.org)
 somewhere in your module path.
+
+Features
+--------
+
+* Multi-select drag-n-drop reordering of playlist.
+* Double click playlist entry to start playback.
+* Sync playlist on changes (add/insert/sort/clear/shuffle).
+* Marker for the currently playing playlist entry.
