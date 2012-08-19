@@ -21,5 +21,5 @@ Features
 
 * Multi-select drag-n-drop reordering of playlist.
 * Double click playlist entry to start playback.
-* Sync playlist on changes (add/insert/sort/clear/shuffle).
+* Sync playlist on changes (add/insert/sort/clear/shuffle...).
 * Marker for the currently playing playlist entry.
