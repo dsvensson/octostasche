@@ -33,7 +33,7 @@ Ext.onReady(function() {
 		multiSelect: true,
 		stateId: 'stateGrid',
 		columns: [
-			new Ext.grid.RowNumberer(),
+			new Ext.grid.RowNumberer({ width: 35 }),
 			{ text: '',       width: 25, sortable: false, dataIndex: 'playing' },
 			{ text: 'Artist',  flex: 1,  sortable: false, dataIndex: 'artist'  },
 			{ text: 'Album',   flex: 1,  sortable: false, dataIndex: 'album'   },
