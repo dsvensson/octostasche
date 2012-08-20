@@ -39,7 +39,8 @@ Ext.define('Octostasche.view.Playback', {
 				action: 'previous'
 			}, {
 				text: 'Play/Pause',
-				action: 'play-pause'
+				action: 'play-pause',
+				width: 50
 			}, {
 				text: '>>',
 				action: 'next'

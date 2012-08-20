@@ -10,6 +10,9 @@ Ext.define('Octostasche.controller.Playback', {
 	}, {
 		selector: 'playback component[name=metadata]',
 		ref: 'metadata'
+	}, {
+		selector: 'playback button[action=play-pause]',
+		ref: 'togglePlayback'
 	}],
 
 	init: function() {
@@ -29,6 +32,17 @@ Ext.define('Octostasche.controller.Playback', {
 		runner.start({ run: this.onPlaytimeInvalidate, scope: this, interval: 900 });
 
 		this.application.xc.playback.currentId(true).complete = Ext.Function.bind(this.onCurrentIdChanged, this);
+		this.application.xc.playback.status(true).complete = Ext.Function.bind(this.onStatusChanged, this);
+	},
+
+	onStatusChanged: function(status) {
+		var button = this.getTogglePlayback();
+		if (status == XmmsClient.PlaybackStatus.PLAYING) {
+			button.setText("Pause");
+		} else {
+			button.setText("Play");
+		}
+		this.status = status;
 	},
 
 	onCurrentIdChanged: function(mid) {
@@ -50,6 +64,14 @@ Ext.define('Octostasche.controller.Playback', {
 			if (data.title && data.title.length > 0)
 				parts.push(data.title);
 			metadata.update(parts.join(" <i> // </i> "));
+		}
+	},
+
+	onTogglePlayClick: function() {
+		if (this.status == XmmsClient.PlaybackStatus.PLAYING) {
+			this.application.xc.playback.pause();
+		} else {
+			this.application.xc.playback.start();
 		}
 	},
 
