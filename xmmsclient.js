@@ -48,10 +48,13 @@ var XmmsClient = function(ws) {
 		setNext: function(position) {
 			return dispatch("playlist_set_next", [position]);
 		},
+		setNextRelative: function(position) {
+			return dispatch("playlist_set_next_rel", [position]);
+		},
 		changed: function() {
 			return dispatch("broadcast_playlist_changed", []);
 		},
-		current_position: function(broadcast) {
+		currentPosition: function(broadcast) {
 			var result = dispatch("playlist_current_pos", []);
 			if (broadcast)
 				return dispatch("broadcast_playlist_current_pos", [], result);
