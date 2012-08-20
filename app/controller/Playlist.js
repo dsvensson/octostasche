@@ -46,11 +46,11 @@ Ext.define('Octostasche.controller.Playlist', {
 		var store = this.getPlaylistStore();
 		var grid = this.getPlaylistGrid();
 
-		if (change.type == xc.PlaylistChange.ADD) {
+		if (change.type == XmmsClient.PlaylistChange.ADD) {
 			store.add({ mid: change.id });
-		} else if (change.type == xc.PlaylistChange.INSERT) {
+		} else if (change.type == XmmsClient.PlaylistChange.INSERT) {
 			store.insert(change.position, { mid: change.id });
-		} else if (change.type == xc.PlaylistChange.MOVE) {
+		} else if (change.type == XmmsClient.PlaylistChange.MOVE) {
 			var row = store.getAt(change.position);
 			store.remove(row);
 			store.insert(change.newposition, row);

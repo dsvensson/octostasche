@@ -1,15 +1,4 @@
 var XmmsClient = function(ws) {
-	this.PlaylistChange = {
-		ADD: 0,
-		INSERT: 1,
-		SHUFFLE: 2,
-		REMOVE: 3,
-		CLEAR: 4,
-		MOVE: 5,
-		SORT: 6,
-		UPDATE: 7
-	};
-
 	var idx = 0;
 	var outstanding = {};
 
@@ -70,6 +59,9 @@ var XmmsClient = function(ws) {
 		start: function() {
 			return dispatch("playback_start", []);
 		},
+		pause: function() {
+			return dispatch("playback_pause", []);
+		},
 		currentId: function(broadcast) {
 			var result = dispatch("playback_current_id", []);
 			if (broadcast)
@@ -92,4 +84,21 @@ var XmmsClient = function(ws) {
 			return dispatch("playback_tickle", []);
 		}
 	};
+};
+
+XmmsClient.PlaybackStatus = {
+	STOPPED: 0,
+	PLAYING: 1,
+	PAUSED: 2
+};
+
+XmmsClient.PlaylistChange = {
+	ADD: 0,
+	INSERT: 1,
+	SHUFFLE: 2,
+	REMOVE: 3,
+	CLEAR: 4,
+	MOVE: 5,
+	SORT: 6,
+	UPDATE: 7
 };
