@@ -13,7 +13,7 @@ Ext.define('Octostasche.controller.Playlist', {
 
 	init: function() {
 		this.control({
-			'playlist': {
+			'playlist dataview': {
 				beforedrop: this.onPlaylistReorder,
 				itemdblclick: this.onPlaylistJump
 			},
