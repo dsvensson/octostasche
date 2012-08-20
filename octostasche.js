@@ -53,7 +53,7 @@ Ext.onReady(function() {
 	});
 
 
-	var ws = new WebSocket("ws://127.0.0.1:8080/socket");
+	var ws = new WebSocket("ws://" + location.host + "/socket");
 	ws.onopen = function() {
 		var xc = new XmmsClient(ws);
 
