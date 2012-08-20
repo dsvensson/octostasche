@@ -95,7 +95,7 @@ print "Server started."
 HTTPServer(
 	Application([
 		("/socket", Handler),
-		("/(.*)", tornado.web.StaticFileHandler, {"path": os.path.dirname(__file__)}),
+		("/(.*)", tornado.web.StaticFileHandler, {"path": os.path.dirname(__file__), "default_filename": "index.html"}),
 	])
 ).listen(8080)
 
