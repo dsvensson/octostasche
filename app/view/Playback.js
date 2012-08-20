@@ -14,7 +14,8 @@ Ext.define('Octostasche.view.Playback', {
 			name: 'metadata',
 			padding: 10,
 			style: {
-				'font-size': '14px'
+				'font-size': '14px',
+				'text-shadow': '1px 1px 2px #999999'
 			}
 		}, {
 			width: 400,
