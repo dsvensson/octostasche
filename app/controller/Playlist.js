@@ -1,7 +1,13 @@
 Ext.define('Octostasche.controller.Playlist', {
 	extend: 'Ext.app.Controller',
 	requires: ['Ext.Function'],
+
 	stores: ['Playlist'],
+
+	refs: [{
+		selector: 'playlist',
+		ref: 'playlistGrid'
+	}],
 
 	currentPosition: 0,
 
@@ -38,6 +44,7 @@ Ext.define('Octostasche.controller.Playlist', {
 
 	onPlaylistChange: function(change) {
 		var store = this.getPlaylistStore();
+		var grid = this.getPlaylistGrid();
 
 		if (change.type == xc.PlaylistChange.ADD) {
 			store.add({ mid: change.id });
