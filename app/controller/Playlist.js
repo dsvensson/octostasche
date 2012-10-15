@@ -58,6 +58,8 @@ Ext.define('Octostasche.controller.Playlist', {
 		} else if (change.type == XmmsClient.PlaylistChange.REMOVE) {
 			var row = store.getAt(change.position);
 			store.remove(row);
+		} else if (change.type == XmmsClient.PlaylistChange.UPDATE) {
+			/* do nothing */
 		} else {
 			/* Something else.. a refresh is probably what we want */
 			this.application.xc.playlist.listEntries().complete = Ext.Function.bind(this.onRefreshPlaylist, this);
