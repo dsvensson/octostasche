@@ -57,7 +57,7 @@ Ext.define('Octostasche.controller.Playlist', {
 			grid.getView().refresh();
 		} else {
 			/* Something else.. a refresh is probably what we want */
-			this.application.xc.playlist.listEntries().complete = Ext.Function.bind(this.refreshPlaylist, this);
+			this.application.xc.playlist.listEntries().complete = Ext.Function.bind(this.onRefreshPlaylist, this);
 		}
 	},
 
