@@ -55,6 +55,9 @@ Ext.define('Octostasche.controller.Playlist', {
 			store.remove(row);
 			store.insert(change.newposition, row);
 			grid.getView().refresh();
+		} else if (change.type == XmmsClient.PlaylistChange.REMOVE) {
+			var row = store.getAt(change.position);
+			store.remove(row);
 		} else {
 			/* Something else.. a refresh is probably what we want */
 			this.application.xc.playlist.listEntries().complete = Ext.Function.bind(this.onRefreshPlaylist, this);
